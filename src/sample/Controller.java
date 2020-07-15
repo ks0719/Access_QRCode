@@ -1,11 +1,15 @@
 package sample;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
-import javafx.stage.Window;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.input.KeyEvent;
+import javafx.stage.*;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
@@ -26,6 +30,10 @@ public class Controller {
     Button QR_btn;
     @FXML
     Button Action_btn;
+
+
+    @FXML
+    TextField Input_key;
 
     FileChooser fc;
     DirectoryChooser dc;
@@ -58,42 +66,63 @@ public class Controller {
     }
 
     public void Action_btn(){
+        if(!(Text_loc.getText().equals("")||QR_loc.getText().equals(""))){
+            Alert a=new Alert(Alert.AlertType.ERROR);
+            a.setTitle("처리 오류!");
+            a.setContentText("경로가 설정되어있지 않습니다. 경로가 올바른지 확인 바랍니다.");
+            a.showAndWait();
+        }else{
+            Popup();
+            while(true){
 
-        Map<String,String> list=new HashMap<>();
 
-        SimpleDateFormat time=new SimpleDateFormat("yyyy년-MM월-dd일");
-        SimpleDateFormat detailtime=new SimpleDateFormat("HH시mm분ss초");
-        Date date=new Date();
-        String title=time.format(date)+" 출입명부 리스트.txt";
-        String add_time=time.format(detailtime);
 
-        f=new File(Text_loc.getText());
-        try{
-
-            BufferedReader br=new BufferedReader(new InputStreamReader(new FileInputStream(f),"euc-kr"));
-            String line="";
-            while((line=br.readLine())!=null){
-                //temp[0]=코드,temp[1]=이름,temp[2]=생년월일,temp[3]=성별,temp[4]=직분,temp[5]=구역
-                String[] temp=line.split("\t");
-                list.put(temp[0],temp[1]+"\t"+temp[2]+"\t"+temp[3]+"\t"+temp[4]+temp[5]);
+                break;
             }
-            br.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
+            Action_btn.setDisable(true);
+            Action_btn.setText("인식 대기중....QR코드를 스캔해주세요.");
+
+            Map<String,String> list=new HashMap<>();
+
+            SimpleDateFormat time=new SimpleDateFormat("yyyy년-MM월-dd일");
+            SimpleDateFormat detailtime=new SimpleDateFormat("HH시mm분ss초");
+            Date date=new Date();
+            String title=time.format(date)+" 출입명부 리스트.txt";
+            String add_time=time.format(detailtime);
+
+            f=new File(Text_loc.getText());
+            try{
+
+                BufferedReader br=new BufferedReader(new InputStreamReader(new FileInputStream(f),"euc-kr"));
+                String line="";
+                while((line=br.readLine())!=null){
+                    //temp[0]=코드,temp[1]=이름,temp[2]=생년월일,temp[3]=성별,temp[4]=직분,temp[5]=구역
+                    String[] temp=line.split("\t");
+                    list.put(temp[0],temp[1]+"\t"+temp[2]+"\t"+temp[3]+"\t"+temp[4]+temp[5]);
+                }
+                br.close();
 
 
-        String text_loc=QR_loc.getText()+"/"+title;
-        f=new File(text_loc);
-        if(f.isFile()){
-            in_file(add_time,list);
-        }else {
-            out_File(title,add_time,list);
+
+                String text_loc=QR_loc.getText()+"/"+title;
+                f=new File(text_loc);
+                if(f.isFile()){
+                    //in_file(add_time,list);
+                }else {
+                    //out_File(title,add_time,list);
+                }
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
         }
+
     }
 
     public void in_file(String add_time,Map list){
@@ -123,6 +152,26 @@ public class Controller {
                 e.printStackTrace();
             }
     }
+
+    @FXML
+    private void Popup(){
+        try{
+            FXMLLoader loader=new FXMLLoader(getClass().getResource("Popup.fxml"));
+            Parent root=(Parent)loader.load();
+            Stage stage=new Stage();
+            stage.setTitle("QR코드 입력창");
+            stage.setScene(new Scene(root));
+            stage.setResizable(false);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void check(KeyEvent event){
+        System.out.println(event.getText());
+    }
+
     }
 
 
