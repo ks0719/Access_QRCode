@@ -9,14 +9,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.stage.*;
+import jdk.internal.util.xml.impl.Input;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 public class Controller {
 
@@ -31,6 +30,10 @@ public class Controller {
     @FXML
     Button Action_btn;
 
+    @FXML
+    AnchorPane Main;
+    @FXML
+    AnchorPane Sub;
 
     @FXML
     TextField Input_key;
@@ -40,6 +43,7 @@ public class Controller {
     File f;
     Window w;
 
+    Map<String,String> list;
 
     public void Text_loc() {
         fc = new FileChooser();
@@ -66,30 +70,17 @@ public class Controller {
     }
 
     public void Action_btn(){
-        if(!(Text_loc.getText().equals("")||QR_loc.getText().equals(""))){
+        if(Text_loc.getText().equals("")||QR_loc.getText().equals("")){
             Alert a=new Alert(Alert.AlertType.ERROR);
             a.setTitle("처리 오류!");
             a.setContentText("경로가 설정되어있지 않습니다. 경로가 올바른지 확인 바랍니다.");
             a.showAndWait();
         }else{
-            Popup();
-            while(true){
-
-
-
-                break;
-            }
 
             Action_btn.setDisable(true);
             Action_btn.setText("인식 대기중....QR코드를 스캔해주세요.");
 
-            Map<String,String> list=new HashMap<>();
-
-            SimpleDateFormat time=new SimpleDateFormat("yyyy년-MM월-dd일");
-            SimpleDateFormat detailtime=new SimpleDateFormat("HH시mm분ss초");
-            Date date=new Date();
-            String title=time.format(date)+" 출입명부 리스트.txt";
-            String add_time=time.format(detailtime);
+           list=new HashMap<>();
 
             f=new File(Text_loc.getText());
             try{
@@ -99,19 +90,14 @@ public class Controller {
                 while((line=br.readLine())!=null){
                     //temp[0]=코드,temp[1]=이름,temp[2]=생년월일,temp[3]=성별,temp[4]=직분,temp[5]=구역
                     String[] temp=line.split("\t");
-                    list.put(temp[0],temp[1]+"\t"+temp[2]+"\t"+temp[3]+"\t"+temp[4]+temp[5]);
+                    System.out.println(Arrays.toString(temp));
+                    list.put(temp[0],temp[1]+"\t"+temp[2]+"\t"+temp[3]+"\t"+temp[4]+"\t"+temp[5]);
                 }
                 br.close();
 
+                Main.setVisible(false);
+                Sub.setVisible(true);
 
-
-                String text_loc=QR_loc.getText()+"/"+title;
-                f=new File(text_loc);
-                if(f.isFile()){
-                    //in_file(add_time,list);
-                }else {
-                    //out_File(title,add_time,list);
-                }
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (UnsupportedEncodingException e) {
@@ -125,11 +111,45 @@ public class Controller {
 
     }
 
-    public void in_file(String add_time,Map list){
 
+    public void check(KeyEvent e){
+        String key=null;
+        SimpleDateFormat time=new SimpleDateFormat("yyyy년-MM월-dd일");
+        SimpleDateFormat daytime=new SimpleDateFormat("HH시mm분ss초");
+        Date date=new Date();
+        String title=time.format(date)+" 출입명부 리스트.txt";
+        String add_time=daytime.format(date);
+
+        if(e.getCode().toString().equals("ENTER")&&list.containsKey(Input_key.getText())){
+           // System.out.println("있어요!");
+            key=list.get(Input_key.getText());
+            Input_key.setText("");
+        }else if(e.getCode().toString().equals("ENTER")){
+            //System.out.println("없어요!:"+Input_key.getText()+"/"+list.containsKey("Input"));
+            Input_key.setText("");
+            return;
+        }
+
+
+        String text_loc=QR_loc.getText()+"/"+title;
+        f=new File(text_loc);
+        if(f.isFile()&&e.getCode().toString().equals("ENTER")){
+            yes_file(key,add_time);
+        }else if(e.getCode().toString().equals("ENTER")) {
+            no_File(key,title,add_time);
+        }
+
+
+    }
+
+    public void yes_file(String key,String add_time){
+        System.out.println("파일이 있어요. 이어쓸게요.");
         try{
-            BufferedWriter bw=new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f),"euc-kr"));
+            BufferedWriter bw=new BufferedWriter(new FileWriter(f,true));
             PrintWriter pw=new PrintWriter(bw,true);
+            pw.write(key+"\t"+add_time);
+            pw.flush();
+            pw.close();
 
 
 
@@ -142,34 +162,21 @@ public class Controller {
         }
     }
 
-    public void out_File(String title,String add_time,Map list){
-            try {
-                BufferedWriter bf=new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f),"euc-kr"));
-                bf.write("");
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-    }
-
-    @FXML
-    private void Popup(){
-        try{
-            FXMLLoader loader=new FXMLLoader(getClass().getResource("Popup.fxml"));
-            Parent root=(Parent)loader.load();
-            Stage stage=new Stage();
-            stage.setTitle("QR코드 입력창");
-            stage.setScene(new Scene(root));
-            stage.setResizable(false);
-            stage.show();
+    public void no_File(String key,String title,String add_time){
+        System.out.println("파일이 없어요. 새로 만들게요");
+        try {
+            BufferedWriter bf=new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f),"euc-kr"));
+            bf.write("이름\t생년월일\t성별\t직분\t구역\t출입시간");
+            bf.newLine();
+            bf.write(key+"\t"+add_time);
+            bf.newLine();
+            bf.flush();
+            bf.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public void check(KeyEvent event){
-        System.out.println(event.getText());
     }
 
     }
