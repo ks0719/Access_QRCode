@@ -37,6 +37,17 @@ public class Controller {
     AnchorPane Sub;
 
     @FXML
+    TextField R_name;
+    @FXML
+    TextField R_birth;
+    @FXML
+    TextField R_gender;
+    @FXML
+    TextField R_status;
+    @FXML
+    TextField R_date;
+
+    @FXML
     TextField Input_key;
 
     FileChooser fc;
@@ -86,7 +97,7 @@ public class Controller {
             f=new File(Text_loc.getText());
             try{
 
-                BufferedReader br=new BufferedReader(new InputStreamReader(new FileInputStream(f),"euc-kr"));
+                BufferedReader br=new BufferedReader(new InputStreamReader(new FileInputStream(f),"UTF-8"));
                 String line="";
                 while((line=br.readLine())!=null){
                     //temp[0]=코드,temp[1]=이름,temp[2]=생년월일,temp[3]=성별,temp[4]=직분,temp[5]=구역
@@ -115,17 +126,19 @@ public class Controller {
 
     public void check(KeyEvent e){
         String key=null;
-        SimpleDateFormat time=new SimpleDateFormat("yyyy년-MM월-dd일");
+        SimpleDateFormat time=new SimpleDateFormat("yyyy년 MM월 dd일");
         SimpleDateFormat daytime=new SimpleDateFormat("HH시mm분ss초");
         Date date=new Date();
         String title=time.format(date)+" 출입명부 리스트.txt";
-        String add_time=daytime.format(date);
+        String add_time=time.format(date)+" "+daytime.format(date);
 
-        if(e.getCode().toString().equals("ENTER")&&list.containsKey(Input_key.getText())){
+        boolean isenter=e.getCode().toString().equals("ENTER");
+
+        if(isenter&&list.containsKey(Input_key.getText())){
            // System.out.println("있어요!");
             key=list.get(Input_key.getText());
             Input_key.setText("");
-        }else if(e.getCode().toString().equals("ENTER")){
+        }else if(isenter){
             //System.out.println("없어요!:"+Input_key.getText()+"/"+list.containsKey("Input"));
             Input_key.setText("");
             return;
@@ -134,11 +147,23 @@ public class Controller {
 
         String text_loc=QR_loc.getText()+"/"+title;
         f=new File(text_loc);
-        if(f.isFile()&&e.getCode().toString().equals("ENTER")){
+        if(f.isFile()&&isenter){
             yes_file(key,add_time);
-        }else if(e.getCode().toString().equals("ENTER")) {
+        }else if(isenter) {
             no_File(key,title,add_time);
         }
+        //temp[0]=이름,temp[1]=생년월일,temp[2]=성별,temp[3]=직분,temp[4]=구역
+        if(isenter){
+            String[] temp=key.split("\t");
+            R_name.setText(temp[0]);
+            R_birth.setText(temp[1]);
+            R_gender.setText(temp[2]);
+            R_status.setText(temp[4]+"("+temp[3]+")");
+            R_date.setText(time.format(date)+" "+daytime.format(date));
+        }
+
+
+
 
 
     }
@@ -146,9 +171,10 @@ public class Controller {
     public void yes_file(String key,String add_time){
         System.out.println("파일이 있어요. 이어쓸게요.");
         try{
-            Writer bw=new OutputStreamWriter(new FileOutputStream(f), StandardCharsets.UTF_8);
+            BufferedWriter bw=new BufferedWriter(new FileWriter(f,true));
             PrintWriter pw=new PrintWriter(bw,true);
-            pw.write(key+"\t"+add_time);
+            //pw.write(key+"\t"+add_time);
+            pw.println(key+"\t"+add_time);
             pw.flush();
             pw.close();
 
@@ -164,7 +190,7 @@ public class Controller {
     public void no_File(String key,String title,String add_time){
         System.out.println("파일이 없어요. 새로 만들게요");
         try {
-            BufferedWriter bf=new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f),"euc-kr"));
+            BufferedWriter bf=new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f),"UTF-8"));
             bf.write("이름\t생년월일\t성별\t직분\t구역\t출입시간");
             bf.newLine();
             bf.write(key+"\t"+add_time);

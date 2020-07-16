@@ -65,7 +65,7 @@
                   <Font size="14.0" />
                </font>
             </Label>
-            <TextField fx:id="R_date" editable="false" layoutX="72.0" layoutY="129.0" prefHeight="23.0" prefWidth="301.0" text="2020년 7월 16일 15시 28분 32초" />
+            <TextField fx:id="R_date" editable="false" layoutX="72.0" layoutY="129.0" prefHeight="23.0" prefWidth="301.0" />
          </children>
       </AnchorPane>
    </children>
