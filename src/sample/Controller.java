@@ -14,6 +14,7 @@ import javafx.stage.*;
 import jdk.internal.util.xml.impl.Input;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -145,7 +146,7 @@ public class Controller {
     public void yes_file(String key,String add_time){
         System.out.println("파일이 있어요. 이어쓸게요.");
         try{
-            BufferedWriter bw=new BufferedWriter(new FileWriter(f,true));
+            Writer bw=new OutputStreamWriter(new FileOutputStream(f), StandardCharsets.UTF_8);
             PrintWriter pw=new PrintWriter(bw,true);
             pw.write(key+"\t"+add_time);
             pw.flush();
@@ -154,8 +155,6 @@ public class Controller {
 
 
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
